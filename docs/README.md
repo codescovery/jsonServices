@@ -1,4 +1,3 @@
-# jsonServices
 # Codescovery JsonServices
   Useful library to convert a json object to json paths. Also provides the ability to override the  value from a json path. 
   
