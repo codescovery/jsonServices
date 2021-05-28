@@ -1,4 +1,5 @@
-﻿using Codescovery.JsonServices.Interfaces;
+﻿using System.Text.Json;
+using Codescovery.JsonServices.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,17 +16,18 @@ namespace Codescovery.JsonServices.Services
 
         public string OverrideJsonValuesFromPath(string jsonFrom, string jsonTo,bool writeIdented = true)
         {
-            var overridedJson = JObject.Parse(jsonFrom);
-            var environmentJsonObject = JObject.Parse(jsonTo);
-            var jsonPath = new JsonPath(jsonTo).CreateJsonPath().CreateJsonPath();
-            foreach (var environmentPath in jsonPath.GetJsonPaths())
+            var fromObject = JObject.Parse(jsonFrom);
+            var toObject = JObject.Parse(jsonTo);
+            var toObjectJsonPath = new JsonPath(jsonTo).CreateJsonPath();
+            foreach (var jsonPath in toObjectJsonPath.GetJsonPaths())
             {
-                var token = overridedJson.SelectToken(environmentPath.Key);
+                var token = fromObject.SelectToken(jsonPath.Key);
                 if (token != null) continue;
-                overridedJson.Add(environmentPath.Key, environmentJsonObject.SelectToken(environmentPath.Key));
+                fromObject.Add(jsonPath.Key, toObject.SelectToken(jsonPath.Key));
             }
 
-            return overridedJson.ToString(writeIdented ? Formatting.Indented : Formatting.None);
+
+            return fromObject.ToString(writeIdented ? Formatting.Indented : Formatting.None);
         }
     }
 }
