@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Codescovery.JsonServices.Interfaces;
 
@@ -16,8 +17,19 @@ namespace Codescovery.JsonServices.Services
             _jsonPaths = new Dictionary<string, string>();
         }
 
+        private IReadOnlyDictionary<string, string> ConvertJsonPathsKeysToLowerInvariant()
+        {
+            return _jsonPaths.Keys.ToDictionary(key => key.ToLower(), key => _jsonPaths[key]);
+        }
+
         public IReadOnlyDictionary<string, string> GetJsonPaths() => _jsonPaths;
-        public string GetPathValue(string path)=> !_jsonPaths.ContainsKey(path.ToLowerInvariant()) ? null : _jsonPaths[path.ToLowerInvariant()];
+
+        public string GetPathValue(string path)
+        {
+            var jsonPaths = ConvertJsonPathsKeysToLowerInvariant();
+           return !jsonPaths.ContainsKey(path.ToLowerInvariant()) ? null : jsonPaths[path.ToLowerInvariant()];
+        }
+
         public IJsonPath CreateJsonPath()
         {
             _jsonPaths.Clear();
@@ -38,14 +50,14 @@ namespace Codescovery.JsonServices.Services
         }
         private void ParseJsonObject(JsonElement jsonElement,  string path)
         {
-            _jsonPaths.Add(path.ToLowerInvariant(), jsonElement.ToString());
+            _jsonPaths.Add(path, jsonElement.ToString());
             foreach (var jsonProperty in jsonElement.EnumerateObject())
                 ParseJsonProperty(jsonProperty, path);
         }
         private void ParseJsonArray(JsonElement jsonElement,  string path)
         {
             var arrayIndex = 0;
-            _jsonPaths.Add(path.ToLowerInvariant(), jsonElement.ToString());
+            _jsonPaths.Add(path, jsonElement.ToString());
             foreach (var jsonArrayElement in jsonElement.EnumerateArray())
             {
                 var jsonArrayPath = $"{path}[{arrayIndex}]";
@@ -74,7 +86,7 @@ namespace Codescovery.JsonServices.Services
                     ParseJsonArray(jsonElement,  path);
                     break;
                 default:
-                    _jsonPaths.Add(path.ToLowerInvariant(), jsonElement.ToString());
+                    _jsonPaths.Add(path, jsonElement.ToString());
                     break;
             }
         }
@@ -83,7 +95,7 @@ namespace Codescovery.JsonServices.Services
         
         private void ParseJsonProperty(JsonProperty jsonProperty, string path = null)
         {
-            path = (path == null) ? jsonProperty.Name.ToLowerInvariant() : $"{path}.{jsonProperty.Name.ToLowerInvariant()}";
+            path = (path == null) ? jsonProperty.Name : $"{path}.{jsonProperty.Name}";
             switch (jsonProperty.Value.ValueKind)
             {
                 case JsonValueKind.String:
