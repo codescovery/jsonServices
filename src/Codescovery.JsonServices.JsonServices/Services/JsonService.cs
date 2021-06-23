@@ -18,15 +18,11 @@ namespace Codescovery.JsonServices.Services
         {
             var fromObject = JObject.Parse(jsonFrom);
             var toObject = JObject.Parse(jsonTo);
-            var toObjectJsonPath = new JsonPath(jsonTo).CreateJsonPath();
-            foreach (var jsonPath in toObjectJsonPath.GetJsonPaths())
+            fromObject.Merge(toObject, new JsonMergeSettings
             {
-                var token = fromObject.SelectToken(jsonPath.Key);
-                if (token != null) continue;
-                fromObject.Add(jsonPath.Key, toObject.SelectToken(jsonPath.Key));
-            }
-
-
+                MergeNullValueHandling = MergeNullValueHandling.Merge,
+                MergeArrayHandling = MergeArrayHandling.Merge
+            });
             return fromObject.ToString(writeIdented ? Formatting.Indented : Formatting.None);
         }
     }
